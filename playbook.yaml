@@ -1,0 +1,73 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+  - set_fact:
+      service_root: "/usr/local/docker/clamav"
+
+  - name: Install dependencies
+    become: yes
+    apt: name=python3-pip state=present update_cache=yes
+
+  - name: Install python pip packages
+    pip: name="{{ item }}" executable=pip3
+    loop:
+    - "docker-compose==1.29.2"
+    - "docker==5.0.3"
+    environment:
+      HTTP_PROXY: "squid.devops.yields.io:3128"
+      HTTPS_PROXY: "squid.devops.yields.io:3128"
+
+  - name: Make sure target directory is created
+    file:
+      dest: "{{ service_root }}"
+      state: directory
+      owner: ubuntu
+      group: ubuntu
+      mode: 0755
+
+  - name: Copy freshclam config file
+    copy:
+      src: freshclam.conf
+      dest: "{{ service_root }}"
+      owner: ubuntu
+      group: ubuntu
+      mode: 0644
+
+  - name: Create docker volume for clamav database
+    docker_volume:
+      name: clamav_db
+
+  - name: Copy docker-compose
+    copy:
+      src: docker-compose.yaml
+      dest: "{{ service_root }}"
+      owner: ubuntu
+      group: ubuntu
+      mode: 0644
+      validate: docker-compose -f %s config
+    register: docker_compose
+
+  - name: Run clamd
+    docker_compose:
+      project_src: "{{ service_root }}"
+      build: no
+      state: present
+    when: docker_compose.changed
+
+  - name: Copy freshclam config file
+    copy:
+      src: scan.sh
+      dest: "{{ service_root }}"
+      owner: ubuntu
+      group: ubuntu
+      mode: 0755
+
+  - name: Add virus scan cron job
+    become: yes
+    cron:
+      name: clamav virus scan
+      user: ubuntu
+      special_time: daily
+      cron_file: clamav_scan
+      job: "{{ service_root }}/scan.sh"
+      state: present

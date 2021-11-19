@@ -1,0 +1,6 @@
+---
+app03:
+  hosts:
+    "app03.qa.yields.io": {}
+  vars:
+    ansible_ssh_user: ubuntu

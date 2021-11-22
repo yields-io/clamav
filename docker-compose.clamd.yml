@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  clamav:
+    volumes:
+    - 'clamd:/run/clamav'
+    - '/:/rootfs:ro'
+volumes:
+  clamd:
+    external: true

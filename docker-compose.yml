@@ -2,6 +2,7 @@ version: '3.3'
 services:
   clamav:
     image: 'clamav/clamav:0.104.1'
+    container_name: 'clamav'
     restart: 'always'
     volumes:
     - 'clamav:/var/lib/clamav'

@@ -2,15 +2,21 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+
+global:
+  image:
+    pullPolicy: ""
+    pullSecrets: []
+    tag: ""
+
 replicaCount: 1
 
 image:
   repository: clamav/clamav
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  pullPolicy: ""
+  pullSecrets: []
   tag: ""
 
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
@@ -38,7 +44,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 3310
 
 ingress:
   enabled: false
@@ -94,3 +100,6 @@ persistence:
     - ReadWriteMany
   size: 8Gi
   annotations: {}
+
+cronjob:
+  enabled: false
